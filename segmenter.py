@@ -12,6 +12,12 @@ if len(pdfs) == 0:
     print("Please put a pdf in the 'pdf' directory")
     exit()
 
+with open("key.txt", "r") as f:
+    if len(f.read()) == 0:
+        print("Please put your key in the 'key.txt' file (If you don't have one, go to "
+          "'https://platform.openai.com/settings/organization/api-keys' and put a little money on it (5$ should be plenty))")
+        exit()
+
 
 for i, file in enumerate(pdfs):
     print(f"{i}: '{file}'")
@@ -38,11 +44,23 @@ option_index = int(input(f"How do you want to segment the pdf? (0-{len(segmentat
 option_count = int(input(f"Per how many {segmentation_options[option_index]}s do you want to cut the pdf? > "))
 
 
+# Thank you to user Greenstick for this code: https://stackoverflow.com/questions/3173320/text-progress-bar-in-terminal-with-block-characters
+def print_progress_bar(iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
+    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    filledLength = int(length * iteration // total)
+    bar = fill * filledLength + '-' * (length - filledLength)
+    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = printEnd)
+    # Print New Line on Complete
+    if iteration == total:
+        print()
+
+
 def get_full_text(start: int, end: int):
     output = ""
+    print("Reading")
     for j in range(start, end + 1):
+        print_progress_bar(j - start, end - start)
         output += reader.pages[j].extract_text()
-
     return output
 
 
@@ -61,7 +79,7 @@ def merge_list(l: list, count: int):
 
 def merge_list_reader(l: list[PageObject], count: int):
     if count == 1:
-        return l
+        return [t.extract_text() for t in l]
     l2 = []
     j = -1
     for i, element in enumerate(l):
@@ -73,33 +91,21 @@ def merge_list_reader(l: list[PageObject], count: int):
 
 
 def write_list_to_files(l: list):
+    print("Writing")
     for i, element in enumerate(l):
+        print_progress_bar(i, len(l) - 1)
         with open(f"segmented_output/segment{str(i)}.txt", "w", encoding="utf-8") as f:
             f.write(element)
+    print()
 
 
 match option_index:
     case 0: # sentence
         text = get_full_text(start, end)
         sentences = text.split(".")
-        write_list_to_files(merge_list(sentences, option_count))
+        merged_list = merge_list(sentences, option_count)
+        write_list_to_files(merged_list)
 
     case 1: # page
-        write_list_to_files(merge_list_reader(reader.pages, option_count))
-
-
-# json with info on ChatGPT API keys and stuff, make it input when first time,
-# when not first time, ask if same info as last time (reuse code from ParcelsTracker)
-
-
-
-
-# Thank you to user Greenstick for this code: https://stackoverflow.com/questions/3173320/text-progress-bar-in-terminal-with-block-characters
-def printProgressBar(iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
-    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-    filledLength = int(length * iteration // total)
-    bar = fill * filledLength + '-' * (length - filledLength)
-    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = printEnd)
-    # Print New Line on Complete
-    if iteration == total:
-        print()
+        merged_list = merge_list_reader(reader.pages, option_count)
+        write_list_to_files(merged_list)
