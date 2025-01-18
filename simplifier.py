@@ -23,7 +23,6 @@ cost_per_token_per_model = {
     "gpt-4": 30
 }
 languages = ["fr", "en"]
-lang = "en"
 context_messages = {
     "fr": ["Peux-tu me réécrire ce texte en de plus simples termes?", "Donne-moi simplement le texte simplifié, sans autres mots."],
     "en": ["Peux-tu simplifier ce texte en de plus simples mots?"]
@@ -31,11 +30,10 @@ context_messages = {
 
 
 def choose_language():
-    global lang
     for i, l in enumerate(languages):
         print(f"{i}: {l}")
     index = int(input(f"In which language is the text? (0-{len(languages) - 1}) > "))
-    lang = languages[index]
+    return languages[index]
 
 
 def get_key():
@@ -60,8 +58,12 @@ def print_progress_bar(iteration, total, prefix = '', suffix = '', decimals = 1,
         print()
 
 
-def load_segments():
+def load_segments() -> list[str]:
     files = [f for f in listdir("segmented_output") if isfile(join("segmented_output", f)) and f[-3:] == "txt"]
+    if len(files) == 0:
+        print("It seems the 'segmented_output' directory does not contain any text files, please run the segmenter first")
+        exit()
+
     segments = []
     for i, file in enumerate(files):
         with open("segmented_output/" + file, "r", encoding="utf-8") as f:
@@ -75,7 +77,7 @@ def num_tokens_from_string(string: str, model_name: str) -> int:
     return num_tokens
 
 
-def get_estimated_cost(segments: list, model_name: str) -> int:
+def get_estimated_cost(segments: list, model_name: str, lang: str) -> float:
     tokens = 0
     for segment in segments:
         tokens += num_tokens_from_string(segment, model_name)
@@ -87,49 +89,68 @@ def get_estimated_cost(segments: list, model_name: str) -> int:
     return cost
 
 
-def get_estimated_costs(segments: list):
+def get_estimated_costs(segments: list, lang: str) -> list[float]:
     costs = []
     print("Estimating costs")
     for i, model in enumerate(models):
         print_progress_bar(i, len(models) - 1)
-        costs.append(round(get_estimated_cost(segments, model), 4))
+        costs.append(round(get_estimated_cost(segments, model, lang), 4))
     print()
     return costs
 
 
-def list_models(segments: list):
-    costs = get_estimated_costs(segments)
+def list_models(segments: list, lang: str):
+    costs = get_estimated_costs(segments, lang)
     for i, model in enumerate(models):
         print(f"{i}: '{model}', estimated cost: US${costs[i]}")
     print("'gpt-4o-mini' is recommended, as it does the job, and it's not too expensive\n")
 
 
-def choose_model(segments: list):
-    list_models(segments)
+def choose_model(segments: list, lang: str) -> str:
+    list_models(segments, lang)
     index = int(input(f"Which model do you want to use? (0-{len(models) - 1}) > "))
     return models[index]
 
 
-text_segments = load_segments()
-choose_language()
-choose_model(text_segments)
+def mainloop_simplifier(segments: list, model: str, lang: str):
+    client = OpenAI(api_key=get_key())
+    for i, segment in enumerate(segments):
+        content_message = f'{context_messages[lang][0]} "{segment}" {context_messages[lang][1]}'
+        completion = client.chat.completions.create(
+            model=model,
+            messages=[
+                # {"role": "system", "content": "You are a helpful assistant."},
+                {
+                    "role": "user",
+                    "content": content_message
+                }
+            ]
+        )
+        simplified_segment = completion.choices[0].message.content
+
+        with open(f"result/simplified_segment{i}.txt", "w") as f:
+            f.write(simplified_segment)
+
+        print_progress_bar(i, len(segment) - 1)
 
 
-client = OpenAI(api_key=get_key())
+def compile_texts():
+    files = [f for f in listdir("result") if isfile(join("result", f)) and f[-3:] == "txt"]
+    if len(files) == 0:
+        print("It seems the 'result' directory does not contain any text files, there has been an error somewhere")
+        exit()
+    text = ""
+    for file in files:
+        with open("result/" + file, "w") as f:
+            text += f.read()
 
-completion = client.chat.completions.create(
-    model="gpt-4o-mini",
-    messages=[
-        #{"role": "system", "content": "You are a helpful assistant."},
-        {
-            "role": "user",
-            "content": "Write a haiku about recursion in programming."
-        }
-    ]
-)
+    index = -1
+    files_in_dir = [f for f in listdir("./") if isfile(join("./", f)) and f[-3:] == "txt"]
+    for file in files_in_dir:
+        if "simplified_text" in file:
+            index = max(index, int(file[-4]))
 
-for choice in completion.choices:
-    print(choice.message.content)
+    with open(f"simplified_text{index + 1}.txt", "w") as f:
+        f.write(text)
 
-
-
+    print(f"The simplified text is in 'simplified_text{index + 1}.txt'")
