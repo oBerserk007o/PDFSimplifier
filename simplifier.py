@@ -3,15 +3,6 @@ from os.path import isfile, join
 from openai import OpenAI
 import tiktoken
 
-# choose language (done)
-# read all segments and load them into list (done)
-# loop through list to get estimates (done)
-# progress bar (done)
-# list models: "{i}: '{model}', estimated cost: {cost}" (done)
-# choose model (done)
-# send to ChatGPT
-# progress bar
-# receive responses and compile them into .txt file
 
 models = ["gpt-4o-mini", "gpt-4o", "gpt-3.5-turbo", "gpt-4-turbo", "gpt-4"]
 # https://openai.com/api/pricing/
@@ -25,7 +16,7 @@ cost_per_token_per_model = {
 languages = ["fr", "en"]
 context_messages = {
     "fr": ["Peux-tu me réécrire ce texte en de plus simples termes?", "Donne-moi simplement le texte simplifié, sans autres mots."],
-    "en": ["Peux-tu simplifier ce texte en de plus simples mots?"]
+    "en": ["Can you simplify me this text into easier terms?", "Give me just the simplified text, without any other words"]
 }
 
 

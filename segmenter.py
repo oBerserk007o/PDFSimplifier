@@ -1,20 +1,6 @@
 from pypdf import PdfReader
 
 
-def check_pdfs_dir():
-    if len(pdfs) == 0:
-        print("Please put a pdf in the 'pdf' directory")
-        exit()
-
-
-def check_key():
-    with open("key.txt", "r") as f:
-        if len(f.read().strip(" ")) == 0:
-            print("Please put your key in the 'key.txt' file (If you don't have one, go to "
-              "'https://platform.openai.com/settings/organization/api-keys' and put a little money on it (5$ should be plenty))")
-            exit()
-
-
 def list_pdfs(pdfs: list[str]):
     for i, file in enumerate(pdfs):
         print(f"{i}: '{file}'")
