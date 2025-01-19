@@ -4,8 +4,8 @@ from time import strftime
 from os import listdir
 from os.path import isfile, join
 from pypdf import PdfReader
-from segmenter import Segmenter
-from simplifier import Simplifier
+from segmenter import main_segmenter, choose_pdf_index, choose_segmentation_index, choose_start_end_indexes
+from simplifier import mainloop_simplifier, load_segments, choose_language, choose_model, compile_texts
 from checks import check_dirs, check_key
 
 
@@ -58,25 +58,36 @@ try:
     segmentation_options = ["sentence", "page"]
     pdfs = [f for f in listdir("pdf") if isfile(join("pdf", f)) and f[-3:] == "pdf"]
     print("\nDISCLAIMER: Make sure the PDF file contains actual text, and not photos of text, in which case, the program will NOT work\n")
-    segmenter = Segmenter(logging)
-    index = segmenter.choose_pdf_index(pdfs)
-    segmentation_index, count = segmenter.choose_segmentation_index(segmentation_options)
+    index = choose_pdf_index(pdfs)
+    segmentation_index, count = choose_segmentation_index(segmentation_options)
 
     reader = PdfReader(f"pdf/{pdfs[index]}")
-    start, end = segmenter.choose_start_end_indexes(reader)
+    start, end = choose_start_end_indexes(reader)
 
-    segmenter.main_segmenter(segmentation_index, count, start, end, reader)
+    main_segmenter(segmentation_index, count, start, end, reader)
     logging.info("Segmentation done from main")
 
     # simplifier
-    simplifier = Simplifier(logging)
-    text_segments = simplifier.load_segments()
-    chosen_language = simplifier.choose_language()
-    chosen_model = simplifier.choose_model(text_segments, chosen_language)
-    simplifier.mainloop_simplifier(text_segments, chosen_model, chosen_language)
+    text_segments = load_segments()
+    chosen_language = choose_language()
+    chosen_model = choose_model(text_segments, chosen_language)
+    mainloop_simplifier(text_segments, chosen_model, chosen_language)
     logging.debug("Simplifying done, compiling")
-    simplifier.compile_texts(chosen_model)
-    logging.info("Process finished, exiting")
+    compile_texts(chosen_model)
+    logging.info("Process finished, asking to clear files")
+
+    # clearing files
+    clear_segmented_output = not "n" in input("Would you lie to clear the 'segmented_output' directory? (y/N) > ").lower()
+    clear_result = not "n" in input("Would you lie to clear the 'result' directory? (y/N) > ").lower()
+
+    if clear_segmented_output:
+        for file in [f for f in listdir("segmented_output") if isfile(join("segmented_output", f))]:
+            os.remove(f"segmented_output/{file}")
+    if clear_result:
+        for file in [f for f in listdir("result") if isfile(join("result", f))]:
+            os.remove(f"result/{file}")
+
+    print("Thank you for using PDFSimplifier!\n")
 
 except KeyboardInterrupt:
     print("\nExiting")
