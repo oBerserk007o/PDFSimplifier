@@ -38,3 +38,9 @@ def check_key():
             print("Please put your key in the 'key.txt' file without any spaces or line breaks")
 
 
+def smart_input(prompt: str, retry_prompt: str = "Please enter a valid number"):
+    result = input(prompt)
+    while not result.isdigit():
+        print(retry_prompt)
+        result = input(prompt)
+    return int(result)
