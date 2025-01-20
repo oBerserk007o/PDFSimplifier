@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# coding: utf8
+
 import time
 from pypdf import PdfReader
 from checks import smart_input

@@ -1,11 +1,21 @@
-import os
+#!/usr/bin/env python3
+# coding: utf8
+
 import logging
-from time import strftime
-from os import listdir
-from os.path import isfile, join
-from pypdf import PdfReader
+try:
+    import os
+    from time import strftime
+    from os import listdir
+    from os.path import isfile, join
+    from pypdf import PdfReader
+except ImportError:
+    print("Something went wrong")
+    logging.exception("Something went wrong")
+    exit()
+
 from segmenter import main_segmenter, choose_pdf_index, choose_segmentation_index, choose_start_end_indexes
 from simplifier import mainloop_simplifier, load_segments, choose_language, choose_model, compile_texts
+from compiler import choose_font, write_to_pdf
 from checks import check_dirs, check_key
 
 
@@ -38,6 +48,7 @@ print("You can contact me at {email}\n")
 print("To make an API key for OpenAPI (which is necessary for this program), follow this guide: "
       "https://www.analyticsvidhya.com/blog/2024/10/openai-api-key-and-add-credits/")
 print("The source code can be found at 'https://github.com/oBerserk007o/PDFSimplifier/tree/master?tab=MIT-1-ov-file'\n\n")
+print("It is suggested that you put the program in an isolated directory to avoid erasing present files\n")
 print("Press Ctrl+C to exit at any time\n\n")
 
 logging.info("Notified user")
@@ -47,11 +58,18 @@ files_dirs = {
     "pdf": "no",
     "result": "",
     "segmented_output": "",
+    "fonts": "",
     "key.txt": ""
 }
 check_dirs(files_dirs)
 check_key()
 logging.info("Checks passed successfully")
+
+
+# TODO: confirm settings before each big step
+# TODO: transform into executable
+# TODO: step by step, choose where to start from
+
 
 try:
     # segmenter
@@ -59,6 +77,7 @@ try:
     pdfs = [f for f in listdir("pdf") if isfile(join("pdf", f)) and f[-3:] == "pdf"]
     print("\nDISCLAIMER: Make sure the PDF file contains actual text, and not photos of text, in which case, the program will NOT work\n")
     index = choose_pdf_index(pdfs)
+    pdf_name = pdfs[index]
     segmentation_index, count = choose_segmentation_index(segmentation_options)
 
     reader = PdfReader(f"pdf/{pdfs[index]}")
@@ -73,12 +92,19 @@ try:
     chosen_model = choose_model(text_segments, chosen_language)
     mainloop_simplifier(text_segments, chosen_model, chosen_language)
     logging.debug("Simplifying done, compiling")
-    compile_texts(chosen_model)
+    exported_file_name = compile_texts(chosen_model)
     logging.info("Process finished, asking to clear files")
 
+    # compiler
+    choose_font()
+    write_to_pdf(pdf_name, exported_file_name)
+    #write_to_pdf("pdf_name.pdf", "simplified_text1-gpt-4o-mini.txt")
+    print(f"\nThe simplified text is in '{'simplified_' + 'pdf_name.pdf'}'")
+    print(f"Please move it to another directory, since it may get erased or cause errors if you run the program again\n")
+
     # clearing files
-    clear_segmented_output = not "n" in input("Would you lie to clear the 'segmented_output' directory? (y/N) > ").lower()
-    clear_result = not "n" in input("Would you lie to clear the 'result' directory? (y/N) > ").lower()
+    clear_segmented_output = not "n" in input("Would you like to clear the 'segmented_output' directory? (y/N) > ").lower()
+    clear_result = not "n" in input("Would you like to clear the 'result' directory? (y/N) > ").lower()
 
     if clear_segmented_output:
         for file in [f for f in listdir("segmented_output") if isfile(join("segmented_output", f))]:

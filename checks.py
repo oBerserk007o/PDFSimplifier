@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+# coding: utf8
+
+import os
 from os import listdir
 from os.path import isfile, join
 import logging
@@ -12,9 +16,12 @@ def check_dirs(files_dirs: dict):
             type = "Directory"
 
         if file_dir not in dirs:
-            print(f"{type} '{file_dir}' is missing, please add it")
-            logging.error(f"{type} '{file_dir}' is missing")
-            exit()
+            logging.error(f"{type} '{file_dir}' is missing, creating it")
+            if type == "Directory":
+                os.mkdir(file_dir)
+            else:
+                with open(file_dir, "x"):
+                    pass
 
         if type == "Directory":
             if (len(listdir(file_dir)) == 0) and should_be_empty == "no":
@@ -29,7 +36,9 @@ def check_dirs(files_dirs: dict):
 
 def check_key():
     if "key.txt" not in listdir():
-        print("File 'key.txt' is missing, please add it with the API key inside \n(here's how to make an API key: https://www.analyticsvidhya.com/blog/2024/10/openai-api-key-and-add-credits/)")
+        with open("key.txt", "x"): pass
+
+        print("Please add the API key inside the 'key.txt' file \n(here's how to make an API key: https://www.analyticsvidhya.com/blog/2024/10/openai-api-key-and-add-credits/)")
         logging.error("File 'key.txt' is missing")
         exit()
 

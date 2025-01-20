@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# coding: utf8
+
 import time
 from os import listdir
 from os.path import isfile, join
@@ -160,7 +163,7 @@ def mainloop_simplifier(segments: list, model: str, lang: str):
     logging.info("Main simplifier finished")
 
 
-def compile_texts(model: str):
+def compile_texts(model: str) -> str:
     logging.info("Compiling texts")
     print("Compiling texts")
     files = [f for f in listdir("result") if isfile(join("result", f)) and f[-3:] == "txt"]
@@ -180,6 +183,5 @@ def compile_texts(model: str):
     with open(f"simplified_text{time1}-{model}.txt", "w", encoding="UTF-8") as f:
         f.write(text_to_write)
 
-    print(f"The simplified text is in 'simplified_text{time1}-{model}.txt'")
-    print(f"Please move it to another directory, since it may get erased or cause errors if you run the program again")
     logging.info("Done compiling texts")
+    return f"simplified_text{time1}-{model}.txt"
