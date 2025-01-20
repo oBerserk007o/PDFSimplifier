@@ -18,7 +18,7 @@ def choose_pdf_index(pdfs: list[str]) -> int:
     if len(pdfs) == 1:
         index = 0
     else:
-        index = smart_input(f"Which file do you want to simplify? (0-{len(pdfs) - 1}) > ")
+        index = smart_input(f"Which file do you want to simplify? (0-{len(pdfs) - 1}) > ", len(pdfs) - 1)
     logging.debug(f"Chose pdf file '{pdfs[index]}'")
     return index
 
@@ -31,16 +31,16 @@ def list_segmentation_options(segmentation_options: list[str]):
 def choose_segmentation_index(segmentation_options: list[str]) -> list[int]:
     logging.debug("Choosing segmentation index and count")
     list_segmentation_options(segmentation_options)
-    segmentation_index = smart_input(f"How do you want to segment the pdf (every 3 sentences usually works well, but it depends on your pdf)? (0-{len(segmentation_options) - 1}) > ")
-    count = smart_input(f"Per how many {segmentation_options[segmentation_index]}s do you want to cut the pdf? > ")
+    segmentation_index = smart_input(f"How do you want to segment the pdf (every 3 sentences usually works well, but it depends on your pdf)? (0-{len(segmentation_options) - 1}) > ", len(segmentation_options) - 1)
+    count = smart_input(f"Per how many {segmentation_options[segmentation_index]}s do you want to cut the pdf? > ", 100000)
     logging.debug(f"Chose segmentation index and count: {segmentation_options[segmentation_index]}, {count}")
     return [segmentation_index, count]
 
 
 def choose_start_end_indexes(reader: PdfReader) -> list[int]:
     logging.debug("Choosing start and end index")
-    start = smart_input(f"At which page does the segment you want to simplify start? (1-{len(reader.pages)}) > ") - 1
-    end = smart_input(f"At which page does the segment you want to simplify end? (1-{len(reader.pages)}) > ") - 1
+    start = smart_input(f"At which page does the segment you want to simplify start? (1-{len(reader.pages)}) > ", len(reader.pages), 1) - 1
+    end = smart_input(f"At which page does the segment you want to simplify end? (1-{len(reader.pages)}) > ", len(reader.pages), 1) - 1
 
     if end > len(reader.pages) or start > len(reader.pages) or start > end:
         print("Indexes aren't valid")

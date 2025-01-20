@@ -30,7 +30,7 @@ def choose_language():
     logging.debug("Choosing language")
     for i, l in enumerate(languages):
         print(f"{i}: {l}")
-    index = smart_input(f"In which language is the text? (0-{len(languages) - 1}) > ")
+    index = smart_input(f"In which language is the text? (0-{len(languages) - 1}) > ", len(languages) - 1)
     logging.debug(f"Chose language {languages[index]}")
     return languages[index]
 
@@ -119,7 +119,7 @@ def list_models(segments: list, lang: str):
 def choose_model(segments: list, lang: str) -> str:
     logging.debug("Choosing model")
     list_models(segments, lang)
-    index = smart_input(f"Which model do you want to use? (0-{len(models) - 1}) > ")
+    index = smart_input(f"Which model do you want to use? (0-{len(models) - 1}) > ", len(models) - 1)
     logging.debug(f"Chose model {models[index]}")
     return models[index]
 
@@ -178,10 +178,10 @@ def compile_texts(model: str) -> str:
 
     text_to_write = "".join([line+".\n" for line in text.split(".")])
 
-    time1 = time.strftime('%Y%m%d_%H%M%S')
+    time1 = time.strftime("%H%M%S")
 
-    with open(f"simplified_text{time1}-{model}.txt", "w", encoding="UTF-8") as f:
+    with open(f"simplified_text{time1}.txt", "w", encoding="UTF-8") as f:
         f.write(text_to_write)
 
     logging.info("Done compiling texts")
-    return f"simplified_text{time1}-{model}.txt"
+    return f"simplified_text{time1}.txt"

@@ -54,9 +54,15 @@ def check_key():
             print("Please put your key in the 'key.txt' file without any spaces or line breaks")
 
 
-def smart_input(prompt: str, retry_prompt: str = "Please enter a valid number"):
-    result = input(prompt)
-    while not result.isdigit():
+def smart_input(prompt: str, max: int, min: int = 0, retry_prompt: str = "Please enter a valid number"):
+    result = input(prompt).strip(" ")
+    while not result.isdigit() and max >= int(result) >= min:
         print(retry_prompt)
         result = input(prompt)
     return int(result)
+
+
+def confirm_settings(settings: dict):
+    for setting, value in settings.items():
+        print(f"{setting}: {value}")
+    return not "n" in input("Do you confirm these settings? (Y/n) > ").lower()

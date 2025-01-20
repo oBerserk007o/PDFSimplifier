@@ -20,7 +20,7 @@ def list_fonts():
 def choose_font():
     logging.debug("Choosing font")
     list_fonts()
-    font_index = smart_input(f"Which font do you want for the pdf? (0-{len(fonts) - 1}) > ")
+    font_index = smart_input(f"Which font do you want for the pdf? (0-{len(fonts) - 1}) > ", len(fonts) - 1)
     pdf.add_font(fonts[font_index], '', "./fonts/" + fonts[font_index] + ".ttf", uni=True)
     pdf.set_font(fonts[font_index], size=15)
     logging.debug(f"Chose font {fonts[font_index]}")
