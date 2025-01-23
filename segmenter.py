@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # coding: utf8
-
+import sys
 import time
 from pypdf import PdfReader
 from checks import smart_input
@@ -45,7 +45,7 @@ def choose_start_end_indexes(reader: PdfReader) -> list[int]:
     if end > len(reader.pages) or start > len(reader.pages) or start > end:
         print("Indexes aren't valid")
         logging.debug("Indexes invalid, exiting")
-        exit()
+        sys.exit()
 
     logging.debug(f"Chose start and end index: {start}, {end}")
     return [start, end]

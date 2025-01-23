@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # coding: utf8
-
+import sys
 import time
 from os import listdir
 from os.path import isfile, join
@@ -45,7 +45,7 @@ def get_key():
     print("Please enter your key in the 'key.txt' file (If you don't have one, go to "
           "'https://platform.openai.com/settings/organization/api-keys' and put a little money on it (5$ should be plenty))")
     logging.debug("Key is empty, exiting")
-    exit()
+    sys.exit()
 
 
 # Thank you to user Greenstick for this code: https://stackoverflow.com/questions/3173320/text-progress-bar-in-terminal-with-block-characters
@@ -65,7 +65,7 @@ def load_segments() -> list[str]:
     if len(files) == 0:
         print("It seems the 'segmented_output' directory does not contain any text files, please run the segmenter first")
         logging.debug("'segmented_output' directory does not contain any text files, exiting")
-        exit()
+        sys.exit()
 
     segments = []
     for i, file in enumerate(files):
@@ -127,7 +127,7 @@ def choose_model(segments: list, lang: str) -> str:
 def mainloop_simplifier(segments: list, model: str, lang: str):
     logging.info("Starting main simplifier")
     client = OpenAI(api_key=get_key())
-    print("\nSimplifying text\n")
+    print("\nSimplifying text (this may take a while)\n")
     time1 = time.time()
     for i, segment in enumerate(segments):
         logging.debug(f"Sending {i}th request to ChatGPT")
@@ -146,8 +146,8 @@ def mainloop_simplifier(segments: list, model: str, lang: str):
             )
         except AuthenticationError:
             print("Invalid API key, please follow this guide to make one: https://www.analyticsvidhya.com/blog/2024/10/openai-api-key-and-add-credits/")
-            logging.critical("Invalid API key, exiting")
-            exit()
+            logging.error("Invalid API key, exiting")
+            sys.exit()
 
         logging.debug("Received response from ChatGPT")
         simplified_segment = completion.choices[0].message.content
@@ -163,14 +163,14 @@ def mainloop_simplifier(segments: list, model: str, lang: str):
     logging.info("Main simplifier finished")
 
 
-def compile_texts(model: str) -> str:
+def compile_texts() -> str:
     logging.info("Compiling texts")
     print("Compiling texts")
     files = [f for f in listdir("result") if isfile(join("result", f)) and f[-3:] == "txt"]
     if len(files) == 0:
         print("It seems the 'result' directory does not contain any text files, there has been an error somewhere")
         logging.debug("'result' directory does not contain any text files, something went wrong")
-        exit()
+        sys.exit()
     text = ""
     for file in files:
         with open("result/" + file, "r", encoding="UTF-8") as f:

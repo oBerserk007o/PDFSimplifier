@@ -3,6 +3,7 @@
 
 import logging
 import os
+import sys
 from time import strftime
 from os import listdir
 from os.path import isfile, join
@@ -10,8 +11,7 @@ from pypdf import PdfReader
 from segmenter import main_segmenter, choose_pdf_index, choose_segmentation_index, choose_start_end_indexes
 from simplifier import mainloop_simplifier, load_segments, choose_language, choose_model, compile_texts
 from compiler import choose_font, write_to_pdf
-from checks import check_dirs, check_key, confirm_settings
-
+from checks import check_dirs, check_key, confirm_settings, smart_input
 
 logging.basicConfig(
     filename=f"{strftime('%Y%m%d_%H%M%S')}.log",
@@ -36,9 +36,7 @@ try:
 except:
     print("Something went wrong, are you on Linux/Mac?")
     logging.exception("Something went wrong, are you on Linux/Mac?")
-
-
-# TODO: transform into executable
+    os.system("pause")
 
 
 def notify_user():
@@ -46,7 +44,7 @@ def notify_user():
     print("This is a program that takes in a pdf, segments it into smaller more digestible pieces, sends them to ChatGPT to simplify the vocabulary, recompiles the bits into one big text file, and turns it into a pdf file you can read more easily!")
     print("By using this software, you agree to the license stated in 'LICENSE'\n")
     print("DISCLAIMER: This program may not work on Linux/Mac!\n")
-    print("If something goes wrong, try restarting the program, if it still doesn't work, restart your device")
+    print("If something goes wrong, try restarting the program and making sure all the required files and directories are present, if it still doesn't work, restart your device")
     print("If it's still not working, please contact me with the according log file (which is often the latest)")
     print("You can contact me at {email}\n")
     print("To make an API key for OpenAPI (which is necessary for this program), follow this guide: "
@@ -63,7 +61,7 @@ def checks():
         "pdf": "no",
         "result": "",
         "segmented_output": "",
-        "fonts": "",
+        "fonts": "no",
         "key.txt": ""
     }
     check_dirs(files_dirs)
@@ -78,15 +76,14 @@ def list_starting_options():
 
 def choose_where_to_start():
     list_starting_options()
-    return input("Where do you want to start? > ")
+    return str(smart_input("Where do you want to start? > ", len(starting_options) - 1))
 
 
 def segment():
     global pdf_name
     segmentation_options = ["sentence", "page"]
     pdfs = [f for f in listdir("pdf") if isfile(join("pdf", f)) and f[-3:] == "pdf"]
-    print(
-        "\nDISCLAIMER: Make sure the PDF file contains actual text, and not photos of text, in which case, the program will NOT work\n")
+    print("\nDISCLAIMER: Make sure the PDF file contains actual text, and not photos of text, in which case, the program will NOT work\n")
     index = choose_pdf_index(pdfs)
     pdf_name = pdfs[index]
     segmentation_index, count = choose_segmentation_index(segmentation_options)
@@ -125,23 +122,33 @@ def simplify(loaded_segments=None):
 
     mainloop_simplifier(text_segments, chosen_model, chosen_language)
     logging.debug("Simplifying done, compiling")
-    exported_file_name = compile_texts(chosen_model)
+    exported_file_name = compile_texts()
     logging.info("Process finished, asking to clear files")
     return exported_file_name
 
 
-def compile_to_pdf(exported_file_name: str):
-    choose_font()
+def compile_to_pdf(exported_file_name=None):
+    if exported_file_name is None:
+        exported_file_name = input("What is the name of the text file to turn into a pdf (without the file extension)? > ")
+
+    try:
+        with open(exported_file_name, "r", encoding="utf-8"):
+            pass
+    except FileNotFoundError:
+        print(f"File '{exported_file_name}' not found")
+        logging.exception(f"File '{exported_file_name}' not found, retrying")
+        compile_to_pdf()
+        return
+
+    fonts = [f[:-4] for f in listdir("fonts") if isfile(join("fonts", f)) and f[-3:] == "ttf"]
+    choose_font(fonts)
     write_to_pdf(pdf_name, exported_file_name)
-    # write_to_pdf("pdf_name.pdf", "simplified_text1-gpt-4o-mini.txt")
     print(f"\nThe simplified text is in '{'simplified_' + pdf_name}'")
-    print(
-        f"Please move it to another directory, since it may get erased or cause errors if you run the program again\n")
+    print(f"Please move it to another directory, since it may get erased or cause errors if you run the program again\n")
 
 
 def clear_directories():
-    clear_segmented_output = "y" in input(
-        "Would you like to clear the 'segmented_output' directory? (y/N) > ").lower()
+    clear_segmented_output = "y" in input("Would you like to clear the 'segmented_output' directory? (y/N) > ").lower()
     clear_result = "y" in input("Would you like to clear the 'result' directory? (y/N) > ").lower()
 
     if clear_segmented_output:
@@ -152,10 +159,8 @@ def clear_directories():
             os.remove(f"result/{file}")
 
 
-try:
-    notify_user()
-    checks()
-
+def start_menu():
+    print("\n")
     match choose_where_to_start().strip(" "):
         case "0":
             segment()
@@ -167,20 +172,29 @@ try:
         case "2":
             simplify()
         case "3":
-            exported_file = input("What is the name of the file to turn into a pdf? > ")
-            compile_to_pdf(exported_file)
+            compile_to_pdf()
         case "4":
             clear_directories()
         case _:
             print("Please enter a valid option number")
-            exit()
+            start_menu()
 
+
+try:
+    notify_user()
+    checks()
+    start_menu()
 
     print("Thank you for using PDFSimplifier!\n")
+    os.system("pause")
 
 except KeyboardInterrupt:
     print("\nExiting")
     logging.info("User exited program")
+except SystemExit:
+    logging.info("Exiting from main, something happened")
+    os.system("pause")
 except:
     print("\nSomething went wrong")
     logging.exception("Something went wrong")
+    os.system("pause")

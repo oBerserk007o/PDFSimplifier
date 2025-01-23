@@ -5,7 +5,7 @@ By using this software, you agree to the license stated in 'LICENSE'.
 
 DISCLAIMER: This program may not work on Linux/Mac!
 
-If something goes wrong, try restarting the program, if it still doesn't work, restart your device
+If something goes wrong, try restarting the program and making sure all the required files and directories are present, if it still doesn't work, restart your device
 If it's still not working, please contact me with the according log file (which is often the latest).
 You can contact me at {email}.
 
