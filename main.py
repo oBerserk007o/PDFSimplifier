@@ -13,6 +13,8 @@ from simplifier import mainloop_simplifier, load_segments, choose_language, choo
 from compiler import choose_font, write_to_pdf
 from checks import check_dirs, check_key, confirm_settings, smart_input
 
+# python -m PyInstaller --onefile --hidden-import=tiktoken_ext.openai_public --hidden-import=tiktoken_ext main.py
+
 logging.basicConfig(
     filename=f"{strftime('%Y%m%d_%H%M%S')}.log",
     encoding="utf-8",
@@ -46,7 +48,7 @@ def notify_user():
     print("DISCLAIMER: This program may not work on Linux/Mac!\n")
     print("If something goes wrong, try restarting the program and making sure all the required files and directories are present, if it still doesn't work, restart your device")
     print("If it's still not working, please contact me with the according log file (which is often the latest)")
-    print("You can contact me at {email}\n")
+    print("You can contact me at 'frostbyte0x0@gmail.com'\n")
     print("To make an API key for OpenAPI (which is necessary for this program), follow this guide: "
           "https://www.analyticsvidhya.com/blog/2024/10/openai-api-key-and-add-credits/")
     print("The source code can be found at 'https://github.com/oBerserk007o/PDFSimplifier/tree/master?tab=MIT-1-ov-file'\n\n")
