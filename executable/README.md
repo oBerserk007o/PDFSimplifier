@@ -7,7 +7,7 @@ DISCLAIMER: This program may not work on Linux/Mac!
 
 If something goes wrong, try restarting the program and making sure all the required files and directories are present, if it still doesn't work, restart your device
 If it's still not working, please contact me with the according log file (which is often the latest).
-You can contact me at {email}.
+You can contact me at 'frostbyte0x0@gmail.com'.
 
 To execute this program on your own computer, copy all the files in the 'executable' directory and paste them on your computer, then run 'PDFSimplifier.exe'.
 It is suggested that you put the program in an isolated directory to avoid erasing present files.
