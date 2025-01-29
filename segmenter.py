@@ -15,10 +15,7 @@ def list_pdfs(pdfs: list[str]):
 def choose_pdf_index(pdfs: list[str]) -> int:
     logging.debug("Choosing pdf file")
     list_pdfs(pdfs)
-    if len(pdfs) == 1:
-        index = 0
-    else:
-        index = smart_input(f"Which file do you want to simplify? (0-{len(pdfs) - 1}) > ", len(pdfs) - 1)
+    index = smart_input(f"Which file do you want to simplify? (0-{len(pdfs) - 1}) > ", len(pdfs) - 1)
     logging.debug(f"Chose pdf file '{pdfs[index]}'")
     return index
 

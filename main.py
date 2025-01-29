@@ -3,7 +3,6 @@
 
 import logging
 import os
-import sys
 from time import strftime
 from os import listdir
 from os.path import isfile, join
@@ -30,6 +29,7 @@ pdf_name = "text.pdf"
 starting_options = ["Normal run (choose this if this is your first time running this program)",
                     "Just segment the pdf",
                     "Just simplify, I already segmented the pdf",
+                    "Just turn the simplified segments into a text file, I already simplified the pdf",
                     "Just turn it into a pdf, I already simplified the text",
                     "Just clear the files"]
 
@@ -86,7 +86,10 @@ def segment():
     segmentation_options = ["sentence", "page"]
     pdfs = [f for f in listdir("pdf") if isfile(join("pdf", f)) and f[-3:] == "pdf"]
     print("\nDISCLAIMER: Make sure the PDF file contains actual text, and not photos of text, in which case, the program will NOT work\n")
-    index = choose_pdf_index(pdfs)
+    if len(pdfs) == 1:
+        index = 0
+    else:
+        index = choose_pdf_index(pdfs)
     pdf_name = pdfs[index]
     segmentation_index, count = choose_segmentation_index(segmentation_options)
 
@@ -123,9 +126,12 @@ def simplify(loaded_segments=None):
         simplify(text_segments)
 
     mainloop_simplifier(text_segments, chosen_model, chosen_language)
-    logging.debug("Simplifying done, compiling")
+    logging.debug("Simplifying done")
+
+
+def compile_simplified_texts_into_text_file() -> str:
+    logging.debug("Starting compiling from main")
     exported_file_name = compile_texts()
-    logging.info("Process finished, asking to clear files")
     return exported_file_name
 
 
@@ -134,7 +140,7 @@ def compile_to_pdf(exported_file_name=None):
         exported_file_name = input("What is the name of the text file to turn into a pdf (without the file extension)? > ")
 
     try:
-        with open(exported_file_name, "r", encoding="utf-8"):
+        with open(exported_file_name + ".txt", "r", encoding="utf-8"):
             pass
     except FileNotFoundError:
         print(f"File '{exported_file_name}' not found")
@@ -166,7 +172,8 @@ def start_menu():
     match choose_where_to_start().strip(" "):
         case "0":
             segment()
-            exported_file = simplify()
+            simplify()
+            exported_file = compile_simplified_texts_into_text_file()
             compile_to_pdf(exported_file)
             clear_directories()
         case "1":
@@ -174,8 +181,10 @@ def start_menu():
         case "2":
             simplify()
         case "3":
-            compile_to_pdf()
+            compile_simplified_texts_into_text_file()
         case "4":
+            compile_to_pdf()
+        case "5":
             clear_directories()
         case _:
             print("Please enter a valid option number")
